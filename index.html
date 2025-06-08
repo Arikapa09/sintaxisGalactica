@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sintaxis Galáctica</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <h1>AFDs en la Vida Real: Patrullas Sintácticas para Detectar Cadenas Válidas</h1>
+    </header>
+    <main>
+        <input type="file" id="fileInput">
+        <button id="validateButton">Validar</button>
+        <div id="results">
+            <h2>Contenido Original del Archivo</h2>
+            <div id="originalContent"></div>
+            <h2>Cadenas Válidas</h2>
+            <div id="validResults"></div>
+            <h2>Cadenas Inválidas</h2>
+            <div id="invalidResults"></div>
+        </div>
+    </main>
+    <script src="validator.js"></script>
+    <script src="afd.js"></script>
+    <script>
+        document.getElementById('validateButton').addEventListener('click', () => {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('Por favor, selecciona un archivo.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const content = event.target.result;
+                const lines = content.split('\n').map(line => line.trim()).filter(line => line !== '' && !line.startsWith('//'));
+                const results = validarArchivo(lines);
+
+                // Mostrar contenido original
+                const originalContentDiv = document.getElementById('originalContent');
+                originalContentDiv.innerHTML = `<pre>${content}</pre>`;
+
+                // Mostrar resultados
+                const validResultsDiv = document.getElementById('validResults');
+                const invalidResultsDiv = document.getElementById('invalidResults');
+
+                if (results.validas.length > 0) {
+                    validResultsDiv.innerHTML = results.validas.map(result =>
+                        `<div class="result-item valid">
+                            <strong>✓ ${result.original}</strong><br>
+                            <span class="result-type">${result.tipo}</span>
+                        </div>`
+                    ).join('');
+                } else {
+                    validResultsDiv.innerHTML = '<p class="no-results">No se encontraron cadenas válidas</p>';
+                }
+
+                if (results.invalidas.length > 0) {
+                    invalidResultsDiv.innerHTML = results.invalidas.map(result =>
+                        `<div class="result-item invalid">
+                            <strong>✗ ${result.original}</strong><br>
+                            <span class="result-type">${result.tipo}</span><br>
+                            <span class="error-message">Error: ${result.error}</span>
+                            ${result.errorPosicion !== undefined ? `<br><span class="error-position">Posición del error: ${result.errorPosicion}</span>` : ''}
+                        </div>`
+                    ).join('');
+                } else {
+                    invalidResultsDiv.innerHTML = '<p class="no-results">No se encontraron cadenas inválidas</p>';
+                }
+            };
+
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+
+</html>
